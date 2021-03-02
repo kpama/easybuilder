@@ -1,0 +1,23 @@
+{
+    "name": "kpama/easybuilder",
+    "description": "Kpama easybuilder package",
+    "type": "library",
+    "authors": [],
+    "minimum-stability": "dev",
+    "require": {
+    },
+    "require-dev": {
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Kpama\\Easybuilder\\Providers\\KpamaEasybuilderServiceProvider"
+            ]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Kpama\\Easybuilder\\": "src/"
+        }
+    }
+}

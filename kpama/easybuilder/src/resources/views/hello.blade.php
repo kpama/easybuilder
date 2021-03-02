@@ -1,0 +1,1 @@
+<h1>Hello from Kpama Easybuilder. Version: {{config('kpamaeasybuilder.version')}}</h1>
