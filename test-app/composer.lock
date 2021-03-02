@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4a16c3c541bd99241cab1c21ce8e83ac",
+    "content-hash": "762d3e74201bc358fd4c2eca220b279a",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -5302,6 +5302,32 @@
                 "source": "https://github.com/hamcrest/hamcrest-php/tree/v2.0.1"
             },
             "time": "2020-07-09T08:09:16+00:00"
+        },
+        {
+            "name": "kpama/easybuilder",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "../kpama/easybuilder",
+                "reference": "2d1846aad05c71d4d331088d34f7c6a5e233fd14"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Kpama\\Easybuilder\\Providers\\KpamaEasybuilderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Kpama\\Easybuilder\\": "src/"
+                }
+            },
+            "description": "Kpama easybuilder package",
+            "transport-options": {
+                "relative": true
+            }
         },
         {
             "name": "laravel/sail",
