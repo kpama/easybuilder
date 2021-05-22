@@ -26,8 +26,8 @@ class Parser
 
         $columns = $this->getTableColumns($model->getTable(), []);
 
-        $result = $this->reflectClass($model, $appendRelationships);
-        $columns += $result['columns'];
+        $result = $this->reflectClass($model, $appendRelationships, $columns);
+        $columns = $result['columns'];
 
         return [
             'class' => get_class($model),
@@ -98,14 +98,18 @@ class Parser
             'type' => 'morph_to_many',
             'class' => get_class($relation->getRelated()),
             'foreign_key' => $relation->getForeignPivotKeyName(),
-            'pivot_class' => $relation->getPivotClass()
+            'parent_foreign_key' => $relation->getRelatedPivotKeyName(),
+            'local_key' => $relation->getRelatedKeyName(),
+            'parent_local_key' => $relation->getParentKeyName(),
+            'pivot_class' => $relation->getPivotClass(),
+            'morph_class' => $relation->getMorphClass(),
         ];
 
         $typeName = $relation->getMorphType();
 
-        $result['columns'] = $this->getTableColumns($relation->getTable(), [], function ($data, $column) use ($relation, $typeName) {
+        $columns = $this->getTableColumns($relation->getTable(), [], function ($data, $column) use ($relation, $typeName) {
             $data['name'] = 'pivot_' . $data['name'];
-            $data['is_foreing_key'] = $relation->getForeignPivotKeyName() == $column->getName();
+            $data['is_foreign_key'] = $relation->getForeignPivotKeyName() == $column->getName();
             $data['is_related_key'] = $relation->getRelatedPivotKeyName() == $column->getName();
             $data['is_relation'] = $data['is_related_key'];
 
@@ -124,8 +128,8 @@ class Parser
             return ValidationBuilder::buildRules($data);
         });
 
-        $re = $this->reflectClass($result['pivot_class'], false);
-        $result['columns'] += $re['columns'];
+        $re = $this->reflectClass($result['pivot_class'], false, $columns);
+        $result['columns'] = $re['columns'];
 
         return $result;
     }
@@ -140,22 +144,37 @@ class Parser
         ];
     }
 
-    protected function parseHasOne($relation)
+    protected function parseHasOne(Relation $relation)
     {
         return [
             'type' => 'has_one',
             'class' => get_class($relation->getRelated()),
-            'foreign_key' => $relation->getForeignKeyName()
+            'foreign_key' => $relation->getForeignKeyName(),
+            'local_key' => $relation->getLocalKeyName(),
         ];
     }
 
-    protected function parseBelongsTo($relation)
+    protected function parseBelongsTo(Relation $relation, &$column)
     {
-        return [
+        $foreingKeyName =  $relation->getForeignKeyName();
+        $column[$foreingKeyName]['is_foreign_key'] = true;
+        $column[$foreingKeyName]['is_relation'] = true;
+        $column[$foreingKeyName]['relation_name'] = $relation->getRelationName();
+
+        $result = [
             'type' =>  'belongs_to',
             'class' => get_class($relation->getRelated()),
-            'foreign_key' => $relation->getForeignKeyName()
+            'foreign_key' => $relation->getOwnerKeyName(),
+            'local_key' => $foreingKeyName,
         ];
+
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            return ValidationBuilder::buildRules($data);
+        });
+
+        $result['columns'] = $columns;
+
+        return $result;
     }
 
     protected function parseMorphTo($relation, &$columns)
@@ -187,54 +206,86 @@ class Parser
 
     protected function parseMorphOne($relation)
     {
-        return [
+        $result = [
             'type' => 'morph_one',
             'class' => get_class($relation->getRelated()),
-            'foreing_key' => $relation->getForeignKeyName()
+            'foreign_key' => $relation->getForeignKeyName(),
+            'local_key' => $relation->getLocalKeyName(),
+            'columns' => []
         ];
+
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            return ValidationBuilder::buildRules($data);
+        });
+
+        $result['columns'] = $columns;
+
+        return $result;
     }
 
     protected function parseHashManyThrough($relation)
     {
-        return [
+        $result = [
             'type' => 'has_many_through',
             'through_class' => get_class($relation->getParent()),
             'class' => get_class($relation->getRelated()),
-            'foreing_key' => $relation->getFirstKeyName()
+            'foreign_key' => $relation->getFirstKeyName(),
+            'columns' => []
         ];
+
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            return ValidationBuilder::buildRules($data);
+        });
+
+        $result['columns'] = $columns;
+
+        return $result;
     }
 
     protected function parseHasMany($relation): array
     {
-        return [
+        $result = [
             'type' => 'has_many',
             'class' => get_class($relation->getRelated()),
-            'foreing_key' => $relation->getForeignKeyName()
+            'foreign_key' => $relation->getForeignKeyName(),
+            'local_key' => $relation->getLocalKeyName(),
+            'columns' => []
         ];
+
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            return ValidationBuilder::buildRules($data);
+        });
+
+        $result['columns'] = $columns;
+
+        return $result;
     }
-    protected function parseBelongsToMany($relation): array
+    protected function parseBelongsToMany(Relation $relation): array
     {
         $result = [
             'type' =>  'belongs_to_many',
             'columns' => [],
             'class' => get_class($relation->getRelated()),
-            'foreing_key' => $relation->getForeignPivotKeyName()
+            'foreign_key' => $relation->getForeignPivotKeyName(),
+            'local_key' => $relation->getParentKeyName(),
+            'related_local_key' => $relation->getRelatedKeyName()
         ];
 
 
-        $result['columns'] = $this->getTableColumns($relation->getTable(), [], function ($data, $column) use ($relation) {
+        $columns = $this->getTableColumns($relation->getTable(), [], function ($data, $column) use ($relation) {
             $data['name'] = 'pivot_' . $data['name'];
-            $data['is_foreing_key'] = $relation->getForeignPivotKeyName() == $column->getName();
+            $data['is_foreign_key'] = $relation->getForeignPivotKeyName() == $column->getName();
             $data['is_related_key'] = $relation->getRelatedPivotKeyName() == $column->getName();
             if ($data['is_related_key']) {
                 $data['class'] = get_class($relation->getRelated());
                 $data['is_relation'] = true;
             }
+
             return ValidationBuilder::buildRules($data);
         });
 
-        $re = $this->reflectClass($result['class'], false);
-        $result['columns'] += $re['columns'];
+        $ref = $this->reflectClass($result['class'], false, $columns);
+        $result['columns'] = $ref['columns'];
 
         return $result;
     }
@@ -302,7 +353,7 @@ class Parser
             'is_accessor' => false,
             'is_mutator' => false,
             'validation_rules' => [],
-            'is_foreing_key' => false
+            'is_foreign_key' => false
         ];
 
         foreach ($data as $key => $value) {
@@ -312,7 +363,7 @@ class Parser
         return $default;
     }
 
-    private function reflectClass($class, $appendRelationships = true)
+    private function reflectClass($class, $appendRelationships = true, $columns)
     {
         $temp = new class
         {
@@ -321,14 +372,13 @@ class Parser
 
         $model = (is_object($class)) ? $class : app($class);
         $ignore = get_class_methods($temp);
-        $columns = [];
         $relationships = [];
 
         foreach (get_class_methods($model) as $method) {
             try {
 
                 $ref = new \ReflectionMethod($model, $method);
-                if (!$ref->isStatic() && (strpos($method, '__') !== 0) && !in_array($method, $ignore)) {
+                if (!$ref->isStatic() && $ref->isPublic()  && (strpos($method, '__') !== 0) && !in_array($method, $ignore)) {
                     $params = $ref->getParameters();
                     $process = true;;
                     $getter = "/get[a-zA-Z0-9]+Attribute$/m";
@@ -345,12 +395,15 @@ class Parser
                         continue;
                     } else if (preg_match($setter, $method)) {
                         $name = Str::snake(str_replace(['set', 'Attribute'], '', $method));
+
                         $field = 'att_set_' . $name;
+                        $param = $params[0];
+
                         $columns[$field] = $this->getColumnMeta([
                             'name' => $name,
                             'is_mutator' => true,
-                            'type_name' => $params[0]->getType()->getName(),
-                            'not_null' => $params[0]->getType()->allowsNull(),
+                            'type_name' => ($param->getType())? $param->getType()->getName(): 'string',
+                            'not_null' => ($param->getType())? $param->getType()->allowsNull(): true,
                             'in_create' => true,
                             'in_update' => true
                         ]);
@@ -371,10 +424,11 @@ class Parser
                         if ($result && $result instanceof Relation) {
                             $definition = $this->parseRelation($result, $columns);
                             if (!empty($definition)) {
-                                $relationships[$method] = [
-                                    'name' => $method,
-                                    'is_relation' => true,
-                                    'definition' => $definition
+                                $snakeName = Str::snake($method);
+                                $relationships[$snakeName] = [
+                                    'name' => $snakeName,
+                                    // 'is_relation' => true,
+                                    'definition' => $definition + ['method' => $method ]
                                 ];
                             }
                         }

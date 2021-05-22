@@ -3,6 +3,7 @@
 namespace Kpama\Easybuilder\Lib;
 
 use Doctrine\DBAL\Types\Types;
+use Illuminate\Support\Facades\Validator;
 
 class ValidationBuilder
 {
@@ -54,8 +55,8 @@ class ValidationBuilder
                     $rules['edit'][] = 'boolean';
                     break;
                 case Types::DATE_MUTABLE:
-                    $rules['create'][] = 'date';
-                    $rules['edit'][] = 'date';
+                    $rules['create'][] = 'date:Y-m-d';
+                    $rules['edit'][] = 'date:Y-m-d';
                     break;
                 case Types::DATEINTERVAL:
                     // @todo
@@ -85,8 +86,8 @@ class ValidationBuilder
                     // @todo
                     break;
                 case Types::TIME_MUTABLE:
-                    $rules['create'][] = 'date_format';
-                    $rules['edit'][] = 'date_format';
+                    $rules['create'][] = 'date_format:H:i:s';
+                    $rules['edit'][] = 'date_format:H:i:s';
                     break;
             }
             $info['validation_rules'] = $rules;
@@ -94,6 +95,13 @@ class ValidationBuilder
 
 
         return $info;
+    }
+
+    public static function validate(array $definition, array $data, bool $creating = true): array
+    {
+        $rules = [];
+        
+        return Validator::make($data, $rules)->validate();
     }
 
     private static function intRules(array $rules, array $info): array
@@ -109,10 +117,7 @@ class ValidationBuilder
         if ($info['not_null']) {
             $rules['create'][] = 'required';
 
-            if (
-                !$info['is_relation'] &&
-                !$info['is_foreing_key']
-            ) {
+            if (!$info['is_relation'] && !$info['is_foreign_key']) {
                 $rules['edit'][] = 'sometimes';
             }
 
