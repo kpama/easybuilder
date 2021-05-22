@@ -29,10 +29,13 @@ class Parser
         $result = $this->reflectClass($model, $appendRelationships, $columns);
         $columns = $result['columns'];
 
+        $class = get_class($model);
+
         return [
-            'class' => get_class($model),
+            'class' => $class,
+            'hash' => base64_encode($class),
             'columns' => $columns,
-            'relationships' => $result['relationships']
+            '_relationships' => $result['relationships']
         ];
     }
 
@@ -146,12 +149,20 @@ class Parser
 
     protected function parseHasOne(Relation $relation)
     {
-        return [
+        $result = [
             'type' => 'has_one',
             'class' => get_class($relation->getRelated()),
             'foreign_key' => $relation->getForeignKeyName(),
             'local_key' => $relation->getLocalKeyName(),
         ];
+
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            return ValidationBuilder::buildRules($data);
+        });
+
+        $result['columns'] = $columns;
+
+        return $result;
     }
 
     protected function parseBelongsTo(Relation $relation, &$column)
