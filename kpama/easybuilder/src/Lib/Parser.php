@@ -324,6 +324,7 @@ class Parser
         foreach ($columnObjs as $aColumn) {
             $data = [
                 'name' => $aColumn->getName(),
+                'label' => $aColumn->getName(),
                 'not_null' => $aColumn->getNotnull(),
                 'default' => $aColumn->getDefault(),
                 'type_name' => $aColumn->getType()->getName(),
@@ -331,6 +332,7 @@ class Parser
                 'is_auto_increment' => $aColumn->getAutoincrement(),
                 'is_relation' => false,
                 'is_primary' => in_array($aColumn->getName(), $primaryIds),
+                'in_filter' => true,
                 // 'options' => $aColumn->getCustomSchemaOptions()
             ];
 
