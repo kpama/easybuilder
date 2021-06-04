@@ -33,7 +33,7 @@ class Parser
 
         return [
             'class' => $class,
-            'hash' => base64_encode($class),
+            'resource' => $this->classToSlug($class),
             'columns' => $columns,
             '_relationships' => $result['relationships']
         ];
@@ -372,6 +372,11 @@ class Parser
         }
 
         return $default;
+    }
+
+    private function classToSlug(string $className): string
+    {
+        return strtolower(str_replace('\\', '-', $className));
     }
 
     private function reflectClass($class, $appendRelationships = true, $columns)
