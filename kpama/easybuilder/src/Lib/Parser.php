@@ -381,7 +381,7 @@ class Parser
 
     private function classToSlug(string $className): string
     {
-        return strtolower(str_replace('\\', '-', $className));
+        return str_replace('\\', '-', $className);
     }
 
     private function reflectClass($class, $appendRelationships = true, $columns)
