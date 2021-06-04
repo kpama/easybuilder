@@ -5,23 +5,37 @@ namespace Kpama\Easybuilder\Lib\Manipulate;
 use Illuminate\Support\Facades\Validator;
 use Kpama\Easybuilder\Lib\Manipulate\Relation\HasOne;
 use Kpama\Easybuilder\Lib\Parser;
+use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * Manipulate the base entity (The actual entity)
  */
 class Entity
 {
+    const MODE_EDIT  = 'edit',
+        MODE_CREATE  = 'create';
+
     public function createOrUpdate(string $resourceClass, array $data, ?string $mode = null, ?string $id = null)
     {
         $parser = new Parser();
         $definition = $parser->parse($resourceClass);
+;
+        return $this->createOrUpdateWithDefinition($definition, $resourceClass, $data, $mode, $id);
+    }
 
-        $result = $this->validate($data, $definition['columns']);
+    public function createOrUpdateWithDefinition(array $definition, string $resourceClass, array $data, ?string $mode = null, ?string $id = null)
+    {
 
+        $result = $this->validate($data, $definition['columns'], $id);
+
+        $idField = $this->getEntityIdField($definition);
         $mode = $mode ?? $result['mode'];
-        $result['id'] = ($id) ? $id : $result['id'];
 
-        $model = ($mode == 'create') ? new $resourceClass : $resourceClass::findOrFail($result['id']);
+        if ($mode == self::MODE_EDIT) {
+            $result[$idField] = ($id) ? $id : $result[$idField];
+        }
+
+        $model = ($mode == self::MODE_CREATE) ? new $resourceClass : $resourceClass::findOrFail($result[$idField]);
 
 
         foreach ($result['clean'] as $field => $value) {
@@ -36,26 +50,46 @@ class Entity
         return $model;
     }
 
-    public function createOrUpdateWithDefinition(array $definition, string $resourceClass, array $data, ?string $mode = null, ?string $id = null)
+    public function getEntityIdField(array $definition): string
     {
-        $result = $this->validate($data, $definition['columns']);
 
-        $mode = $mode ?? $result['mode'];
-        $result['id'] = ($id) ? $id : $result['id'];
+        $idField = 'id';
 
-        $model = ($mode == 'create') ? new $resourceClass : $resourceClass::findOrFail($result['id']);
+        foreach ($definition['columns'] as $column) {
+            if ($column['is_primary']) {
+                $idField = $column['name'];
+                break;
+            }
+        }
 
+        return $idField;
+    }
 
-        foreach ($result['clean'] as $field => $value) {
-            $model->{$field} = $value;
+    public function query(string $resourceClass, string $id = null)
+    {
+        $parser = new Parser();
+        $definition = $parser->parse($resourceClass);
+        return $this->queryWithDefinition($definition, $resourceClass, $id);
+    }
+
+    public function queryWithDefinition(array $definition, string $resourceClass, string $id = null)
+    {
+        $allowToFileBy = [];
+
+        foreach ($definition['columns'] as $column) {
+            if ($column['in_filter']) {
+                $allowToFileBy[] = $column['name'];
+            }
         }
 
 
-        $model->save();
+        $query = QueryBuilder::for($resourceClass)->allowedFilters($allowToFileBy);
 
-        $mode = $this->setAssociations($definition, $data, $model);
-
-        return $model;
+        if ($id) {
+            return $query->findOrFail($id);
+        } else {
+            return $query->get();
+        }
     }
 
 
@@ -64,30 +98,35 @@ class Entity
         if (isset($definition['_relationships'])) {
             foreach ($definition['_relationships'] as $name => $def) {
                 if (isset($data[$name])) {
-                    switch ($def['definition']['type']) {
+                    switch ($def['type']) {
                         case 'has_one':
-                            (new HasOne($model, $def, $data[$name]))->apply($remove);
+                            $model = (new HasOne($model, $def, $data[$name], $name, $definition))->apply($remove);
                             break;
                     }
                 }
             }
         }
 
+        // do removes
+        if (isset($data['_remove'])) {
+            $model = $this->setAssociations($definition, $data['_remove'], $model, true);
+        }
+
         return $model;
     }
 
 
-    protected function validate(array $data, array $columns): array
+    protected function validate(array $data, array $columns, ?string $id = ''): array
     {
         $createRules = [];
         $editRules = [];
-        $mode = 'create';
+        $mode = $id ? self::MODE_EDIT : self::MODE_CREATE;
         $id = '';
 
         foreach ($columns as $name => $definition) {
             $validationRules = $definition['validation_rules'];
             if ($definition['is_primary'] && isset($data[$name])) {
-                $mode = 'edit';
+                $mode = self::MODE_EDIT;
                 $id = $data[$name];
             }
 
@@ -103,8 +142,7 @@ class Entity
             }
         }
 
-
-        $rules = ($mode == 'create') ? $createRules : $editRules;
+        $rules = ($mode == self::MODE_CREATE) ? $createRules : $editRules;
         return [
             'clean' =>  Validator::make($data, $rules)->validate(),
             'mode' => $mode,
