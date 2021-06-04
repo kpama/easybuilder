@@ -4,6 +4,7 @@ namespace Kpama\Easybuilder\Lib;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Kpama\Easybuilder\Lib\Manipulate\Entity;
 
 class Manipulator
@@ -15,19 +16,21 @@ class Manipulator
         $this->entity = new Entity();
     }
 
-    public function handleCreateOrUpdateRequest(Request $request, string $hash, string $id = null)
+    public function handleCreateOrUpdateRequest(Request $request, string $resource, string $id = null)
     {
-        return $this->entity->createOrUpdate($this->decodeHash($hash), $request->all(), ($id) ? 'edit' : 'create', $id);
+
+        return $this->entity->createOrUpdate($this->resourceToClass($resource), $request->all(), ($id) ? 'edit' : 'create',$id);
     }
 
-    public function handleCreateOrUpdateData(string $hash, array $data, string $id = null)
+    public function handleCreateOrUpdateData(string $resource, array $data, string $id = null)
     {
-        return $this->entity->createOrUpdate($this->decodeHash($hash), $data, ($id) ? 'edit' : 'create', $id);
+        return $this->entity->createOrUpdate($this->resourceToClass($resource), $data, ($id) ? 'edit' : 'create', $id);
     }
 
-    public function handleGetRequest()
+    public function handleGetRequest(Request $request, string $resource, string $id = null)
     {
-        // @todo Implement this method
+        $class = $this->resourceToClass($resource);
+        return $this->entity->query($class, $id);
     }
 
     public function handleGet()
@@ -35,8 +38,15 @@ class Manipulator
         // @todo Implement this method
     }
 
-    protected function decodeHash(string $hash): string
+    protected function resourceToClass(string $resource): string
     {
-        return  base64_decode($hash);
+        $pieces = explode('-', $resource);
+        foreach ($pieces as $index  => $name) {
+            $pieces[$index] = ucfirst($name);
+        }
+
+        $class = implode('\\', $pieces);
+
+        return $class;
     }
 }
