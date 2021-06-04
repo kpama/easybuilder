@@ -22,12 +22,22 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::resource('users', UserController::class);
 
-Route::post('resource/{hash}', function(Request $request, $hash) {
+Route::post('resource/{resource}', function(Request $request, $resource) {
     $manipulator = new Manipulator();
-    return $manipulator->handleCreateOrUpdateRequest($request, $hash);
+    return $manipulator->handleCreateOrUpdateRequest($request, $resource);
 });
 
-Route::put('resource/{hash}/{id}', function(Request $request, $hash, $id) {
+Route::put('resource/{resource}/{id}', function(Request $request, $resource, $id) {
     $manipulator = new Manipulator();
-    return $manipulator->handleCreateOrUpdateRequest($request, $hash, $id);
+    return $manipulator->handleCreateOrUpdateRequest($request, $resource, $id);
+});
+
+Route::get('resource/{resource}', function(Request $request, $resource) {
+    $manipulator = new Manipulator();
+    return $manipulator->handleGetRequest($request, $resource);
+});
+
+Route::get('resource/{resource}/{id}', function(Request $request, $resource, $id) {
+    $manipulator = new Manipulator();
+    return $manipulator->handleGetRequest($request, $resource, $id);
 });
