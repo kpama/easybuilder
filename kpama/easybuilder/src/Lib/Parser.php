@@ -448,9 +448,9 @@ class Parser
                                 $snakeName = Str::snake($method);
                                 $relationships[$snakeName] = [
                                     'name' => $snakeName,
+                                    'label' => $snakeName,
                                     // 'is_relation' => true,
-                                    'definition' => $definition + ['method' => $method ]
-                                ];
+                                ] + $definition + ['method' => $method ];
                             }
                         }
                     }
