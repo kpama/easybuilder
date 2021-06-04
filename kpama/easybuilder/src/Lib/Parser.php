@@ -92,6 +92,9 @@ class Parser
                 }
                 break;
         }
+        $result['in_filter'] = true;
+        $result['in_read'] = true;
+
         return $result;
     }
 
