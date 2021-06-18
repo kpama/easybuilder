@@ -407,17 +407,18 @@ class Parser
 
                     if (preg_match($getter, $method)) {
                         $name = Str::snake(str_replace(['get', 'Attribute'], '', $method));
-                        $field = 'att_get_' . $name;
+                        $field = $name;
                         $columns[$field] = $this->getColumnMeta([
                             'name' => $name,
-                            'is_accessor' => true
+                            'is_accessor' => true,
+                            'in_filter' => false
                         ]);
                         $columns[$field] = ValidationBuilder::buildRules($columns[$field]);
                         continue;
                     } else if (preg_match($setter, $method)) {
                         $name = Str::snake(str_replace(['set', 'Attribute'], '', $method));
 
-                        $field = 'att_set_' . $name;
+                        $field = $name;
                         $param = $params[0];
 
                         $columns[$field] = $this->getColumnMeta([
@@ -426,7 +427,8 @@ class Parser
                             'type_name' => ($param->getType())? $param->getType()->getName(): 'string',
                             'not_null' => ($param->getType())? $param->getType()->allowsNull(): true,
                             'in_create' => true,
-                            'in_update' => true
+                            'in_update' => true,
+                            'in_filter' => false
                         ]);
                         $columns[$field] = ValidationBuilder::buildRules($columns[$field]);
                         continue;

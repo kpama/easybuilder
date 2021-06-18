@@ -10,7 +10,7 @@ abstract class Relation
     protected $model;
     protected array $definition;
     protected array $fullDefinition;
-    protected Entity $enity;
+    protected Entity $entity;
     protected array $data;
     protected string $relation;
 

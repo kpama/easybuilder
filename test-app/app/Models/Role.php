@@ -19,7 +19,7 @@ class Role extends Model
         return 'foo';
     }
 
-    public function setFakeAttribute(?bool $yes)
+    public function setFakeAttribute(bool $yes)
     {
 
     }

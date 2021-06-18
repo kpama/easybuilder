@@ -1,12 +1,6 @@
 <?php
 
-use App\Models\Group;
-use App\Models\Person;
-use App\Models\Role;
-use App\Models\Secret;
-use App\Models\Software;
 use App\Models\User;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Kpama\Easybuilder\Lib\Parser;
 
@@ -28,5 +22,5 @@ Route::get('/', function () {
 Route::get('test', function(){
     $parser = new Parser();
 
-    return $parser->parse(Software::class);
+    return $parser->parse(User::class);
 });

@@ -3,9 +3,12 @@
 namespace Kpama\Easybuilder\Lib\Manipulate;
 
 use Illuminate\Support\Facades\Validator;
+use Kpama\Easybuilder\Lib\Manipulate\Relation\BelongsToMany;
 use Kpama\Easybuilder\Lib\Manipulate\Relation\HasOne;
 use Kpama\Easybuilder\Lib\Parser;
+use Kpama\Easybuilder\Lib\Query;
 use Spatie\QueryBuilder\QueryBuilder;
+// use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 
 /**
  * Manipulate the base entity (The actual entity)
@@ -18,8 +21,7 @@ class Entity
     public function createOrUpdate(string $resourceClass, array $data, ?string $mode = null, ?string $id = null)
     {
         $parser = new Parser();
-        $definition = $parser->parse($resourceClass);
-;
+        $definition = $parser->parse($resourceClass);;
         return $this->createOrUpdateWithDefinition($definition, $resourceClass, $data, $mode, $id);
     }
 
@@ -82,8 +84,7 @@ class Entity
             }
         }
 
-
-        $query = QueryBuilder::for($resourceClass)->allowedFilters($allowToFileBy);
+        $query = (new Query($definition))->build($resourceClass, $this);
 
         if ($id) {
             return $query->findOrFail($id);
@@ -99,6 +100,9 @@ class Entity
             foreach ($definition['_relationships'] as $name => $def) {
                 if (isset($data[$name])) {
                     switch ($def['type']) {
+                        case 'belongs_to_many':
+                            $model = (new BelongsToMany($model, $def, $data[$name], $name, $definition))->apply($remove);
+                            break;
                         case 'has_one':
                             $model = (new HasOne($model, $def, $data[$name], $name, $definition))->apply($remove);
                             break;
@@ -116,14 +120,15 @@ class Entity
     }
 
 
-    protected function validate(array $data, array $columns, ?string $id = ''): array
+    public function validate(array $data, array $columns, ?string $id = ''): array
     {
         $createRules = [];
         $editRules = [];
         $mode = $id ? self::MODE_EDIT : self::MODE_CREATE;
         $id = '';
 
-        foreach ($columns as $name => $definition) {
+        foreach ($columns as $definition) {
+            $name = $definition['name'];
             $validationRules = $definition['validation_rules'];
             if ($definition['is_primary'] && isset($data[$name])) {
                 $mode = self::MODE_EDIT;

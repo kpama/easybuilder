@@ -5,6 +5,7 @@
     "authors": [],
     "minimum-stability": "dev",
     "require": {
+         "spatie/laravel-query-builder": "^3.3"
     },
     "require-dev": {
     },
