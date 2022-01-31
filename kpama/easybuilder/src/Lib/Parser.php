@@ -16,9 +16,32 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
+use ReflectionMethod;
 
 class Parser
 {
+
+    protected string $relationRegex;
+
+    protected static $relations = [
+        'hasOne',
+        'belongsTo',
+        'hasMany',
+        'hasOneThrough',
+        'hasManyThrough',
+        'belongsToMany',
+        'morphTo',
+        'morphOne',
+        'morphMany',
+        'morphToMany',
+        'morphedByMany',
+    ];
+
+
+    public function __construct()
+    {
+        $this->relationRegex = '/^return\s+\$this->(' . implode('|', self::$relations) . ')/m';
+    }
 
     public function parse($modelClass, bool $appendRelationships = true)
     {
@@ -394,12 +417,13 @@ class Parser
         $model = (is_object($class)) ? $class : app($class);
         $ignore = get_class_methods($temp);
         $relationships = [];
+        $fileContent = [];
 
         foreach (get_class_methods($model) as $method) {
             try {
 
                 $ref = new \ReflectionMethod($model, $method);
-                if (!$ref->isStatic() && $ref->isPublic()  && (strpos($method, '__') !== 0) && !in_array($method, $ignore)) {
+                if (!$ref->isStatic() && $ref->isPublic()  && (strpos($method, '__') !== 0) && (strpos($method, 'scope') !== 0) && !in_array($method, $ignore)) {
                     $params = $ref->getParameters();
                     $process = true;;
                     $getter = "/get[a-zA-Z0-9]+Attribute$/m";
@@ -424,8 +448,8 @@ class Parser
                         $columns[$field] = $this->getColumnMeta([
                             'name' => $name,
                             'is_mutator' => true,
-                            'type_name' => ($param->getType())? $param->getType()->getName(): 'string',
-                            'not_null' => ($param->getType())? $param->getType()->allowsNull(): true,
+                            'type_name' => ($param->getType()) ? $param->getType()->getName() : 'string',
+                            'not_null' => ($param->getType()) ? $param->getType()->allowsNull() : true,
                             'in_create' => true,
                             'in_update' => true,
                             'in_filter' => false
@@ -443,7 +467,22 @@ class Parser
 
 
                     if ($process &&  $appendRelationships) {
-                        $result = $model->{$method}();
+                        if (!isset($fileContent[$ref->getFileName()])) {
+                            $fileContent[$ref->getFileName()] = array_map(function ($line) {
+                                return trim($line) . PHP_EOL;
+                            }, explode(PHP_EOL, file_get_contents($ref->getFileName())));
+                        }
+
+
+                        $text = '';
+                        for ($line = $ref->getStartLine(); $line < $ref->getEndLine(); $line++) {
+                            $text = $fileContent[$ref->getFileName()][$line];
+                            if (strpos($text, 'return') === 0) {
+                                break;
+                            }
+                        }
+                        $result = (preg_match($this->relationRegex, $text)) ? $model->{$method}() : false;
+
                         if ($result && $result instanceof Relation) {
                             $definition = $this->parseRelation($result, $columns);
                             if (!empty($definition)) {
@@ -452,7 +491,7 @@ class Parser
                                     'name' => $snakeName,
                                     'label' => $snakeName,
                                     // 'is_relation' => true,
-                                ] + $definition + ['method' => $method ];
+                                ] + $definition + ['method' => $method];
                             }
                         }
                     }
