@@ -166,11 +166,19 @@ class Parser
     protected function parseMorphMany($relation)
     {
 
-        return [
+        $result =  [
             'type' => 'morph_many',
             'class' => get_class($relation->getRelated()),
-            'foreign_key' => $relation->getForeignKeyName()
+            'foreign_key' => $relation->getForeignKeyName(),
+            'local_key' => $relation->getLocalKeyName(),
         ];
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            return ValidationBuilder::buildRules($data);
+        });
+
+        $result['columns'] = $columns;
+
+        return $result;
     }
 
     protected function parseHasOne(Relation $relation)
