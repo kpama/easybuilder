@@ -35,6 +35,11 @@ class Manipulator
         // @todo Implement this method
     }
 
+    public function getEntity(): Entity
+    {
+        return $this->entity;
+    }
+
     protected function resourceToClass(string $resource): string
     {
         $pieces = explode('-', $resource);
