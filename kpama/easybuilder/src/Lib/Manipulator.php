@@ -2,9 +2,7 @@
 
 namespace Kpama\Easybuilder\Lib;
 
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Kpama\Easybuilder\Lib\Manipulate\Entity;
 
 class Manipulator
@@ -18,7 +16,6 @@ class Manipulator
 
     public function handleCreateOrUpdateRequest(Request $request, string $resource, string $id = null)
     {
-
         return $this->entity->createOrUpdate($this->resourceToClass($resource), $request->all(), ($id) ? 'edit' : 'create',$id);
     }
 
