@@ -8,7 +8,7 @@ use Kpama\Easybuilder\Lib\Manipulate\Entity;
 abstract class Relation
 {
 
-    protected $model;
+    protected object $model;
     protected array $definition;
     protected array $fullDefinition;
     protected Entity $entity;
