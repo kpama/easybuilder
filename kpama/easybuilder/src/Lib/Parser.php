@@ -117,6 +117,7 @@ class Parser
         }
         $result['in_filter'] = true;
         $result['in_read'] = true;
+        $result['resource'] = $this->classToSlug(get_class($relation->getRelated()));
 
         return $result;
     }
