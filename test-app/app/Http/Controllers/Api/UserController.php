@@ -28,7 +28,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $manipulator = new Manipulator();
-        return $manipulator->createOrUpdate(User::class, $request->all());
+        return $manipulator->getEntity()->createOrUpdate(User::class, $request->all());
     }
 
     /**
