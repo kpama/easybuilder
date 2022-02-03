@@ -50,16 +50,16 @@ class Parser
         $columns = $this->getTableColumns($model->getTable(), []);
 
         $result = $this->reflectClass($model, $appendRelationships, $columns);
-        $columns = $result['columns'];
 
         $class = get_class($model);
 
-        return [
-            'class' => $class,
-            'resource' => $this->classToSlug($class),
-            'columns' => $columns,
-            '_relationships' => $result['relationships']
-        ];
+        $result['class'] = $class;
+        $result['resource'] = $this->classToSlug($class);
+
+        ksort($result);
+
+        return $result;
+
     }
 
     protected function parseRelation($relation, &$columns)
@@ -427,16 +427,20 @@ class Parser
         $ignore = get_class_methods($temp);
         $relationships = [];
         $fileContent = [];
+        $scopes = [];
+        $canSoftDelete = method_exists($model, 'initializeSoftDeletes');
+
 
         foreach (get_class_methods($model) as $method) {
             try {
 
                 $ref = new \ReflectionMethod($model, $method);
-                if (!$ref->isStatic() && $ref->isPublic()  && (strpos($method, '__') !== 0) && (strpos($method, 'scope') !== 0) && !in_array($method, $ignore)) {
+                if (!$ref->isStatic() && $ref->isPublic()  && (strpos($method, '__') !== 0)  && !in_array($method, $ignore)) {
                     $params = $ref->getParameters();
                     $process = true;;
                     $getter = "/get[a-zA-Z0-9]+Attribute$/m";
                     $setter = "/set[a-zA-Z0-9]+Attribute$/m";
+                    $scope = '/scope[a-zA-Z0-9]/m';
 
                     if (preg_match($getter, $method)) {
                         $name = Str::snake(str_replace(['get', 'Attribute'], '', $method));
@@ -447,6 +451,25 @@ class Parser
                             'in_filter' => false
                         ]);
                         $columns[$field] = ValidationBuilder::buildRules($columns[$field]);
+                        continue;
+                    } else if(preg_match($scope, $method)) {
+                        $name = lcfirst(str_replace('scope', '', $method));
+                        $builtParams = [];
+
+                        array_shift($params);
+
+                        foreach ($params as $aParam) {
+                            $builtParams[$aParam->getName()] = [
+                                'optional' => $aParam->isOptional(),
+                                'type' => $aParam->getType()->getName(),
+                            ];
+                        }
+
+                        $scopes[$name] = [
+                            'name' => $name,
+                            'params' => $builtParams
+                        ];
+
                         continue;
                     } else if (preg_match($setter, $method)) {
                         $name = Str::snake(str_replace(['set', 'Attribute'], '', $method));
@@ -512,7 +535,9 @@ class Parser
 
         return [
             'columns' => $columns,
-            'relationships' => $relationships
+            'relationships' => $relationships,
+            'scopes' => $scopes,
+            'can_soft_delete' => $canSoftDelete
         ];
     }
 }
