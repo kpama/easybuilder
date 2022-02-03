@@ -96,8 +96,8 @@ class Entity
 
     public function setAssociations(array $definition, array $data, object $model, bool $remove = false): object
     {
-        if (isset($definition['_relationships'])) {
-            foreach ($definition['_relationships'] as $name => $def) {
+        if (isset($definition['relationships'])) {
+            foreach ($definition['relationships'] as $name => $def) {
                 if (isset($data[$name])) {
                     switch ($def['type']) {
                         case 'belongs_to_many':
