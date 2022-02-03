@@ -17,7 +17,7 @@ class JsonSchema implements TransformerInterface
     $schema = $this->buildObject($parsedData, $schema);
 
     if ($appendRelationships) {
-      foreach ($parsedData['_relationships'] as $name => $data) {
+      foreach ($parsedData['relationships'] as $name => $data) {
         $schema['properties'][$name] = $this->buildRelation($data);
       }
     }
