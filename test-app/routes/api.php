@@ -4,6 +4,9 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Kpama\Easybuilder\Lib\Manipulator;
+use Kpama\Easybuilder\Lib\Api\RouteBuilder;
+use App\Models\Person;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,3 +44,6 @@ Route::get('resource/{resource}/{id}', function(Request $request, $resource, $id
     $manipulator = new Manipulator();
     return $manipulator->handleGetRequest($request, $resource, $id);
 });
+
+RouteBuilder::generate(Person::class, false);
+RouteBuilder::generate(User::class, false);
