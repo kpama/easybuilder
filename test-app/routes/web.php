@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Kpama\Easybuilder\Lib\Parser;
 use Kpama\Easybuilder\Lib\Transformer\Form;
 use Kpama\Easybuilder\Lib\Transformer\JsonSchema;
@@ -25,12 +27,12 @@ Route::get('/', function () {
 Route::get('test', function(){
     $parser = new Parser();
 
-    return $parser->parse(User::class);
+    return $parser->parse(Person::class);
 });
 
 Route::get('json-schema', function(){
     $parser = new Parser();
-    return (new JsonSchema())->transform($parser->parse(Role::class));
+    return (new JsonSchema())->transform($parser->parse(Person::class));
 });
 
 Route::get('ui', function(){
