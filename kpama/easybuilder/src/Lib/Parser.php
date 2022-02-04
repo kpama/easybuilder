@@ -185,21 +185,22 @@ class Parser
         return $result;
     }
 
-    protected function parseBelongsTo(Relation $relation, &$column)
+    protected function parseBelongsTo(Relation $relation)
     {
         $foreingKeyName =  $relation->getForeignKeyName();
-        $column[$foreingKeyName]['is_foreign_key'] = true;
-        $column[$foreingKeyName]['is_relation'] = true;
-        $column[$foreingKeyName]['relation_name'] = $relation->getRelationName();
+        $columns = [];
+        $columns[$foreingKeyName]['is_foreign_key'] = true;
+        $columns[$foreingKeyName]['is_relation'] = true;
+        $columns[$foreingKeyName]['relation_name'] = $relation->getRelationName();
 
         $result = [
-            'type' =>  'belongs_to',
+            'type' => 'belongs_to',
             'class' => get_class($relation->getRelated()),
             'foreign_key' => $relation->getOwnerKeyName(),
             'local_key' => $foreingKeyName,
         ];
 
-        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $columns) use ($relation) {
             return ValidationBuilder::buildRules($data);
         });
 
