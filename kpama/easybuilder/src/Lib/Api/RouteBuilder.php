@@ -11,7 +11,7 @@ use Kpama\Easybuilder\Lib\Parser;
 
 class RouteBuilder
 {
-    public static function generate(string|array $model, ?Closure $forEachRoute = null, ?string $controller = ApiController::class, string $slug = null)
+    public static function generate(string|array $model, ?Closure $forEachRoute = null, ?string $controller = null, string $slug = null)
     {
         if(is_array($model)) {
             foreach($model as $aModel) {
@@ -24,7 +24,7 @@ class RouteBuilder
         $data = $parser->parse($model);
 
         $slug = $slug ?: Str::slug($data['class']);
-        $controller = $controller ?: ApiController::class;
+        $controller = $controller ?: config('kpamaeasybuilder.api_controller');
 
         $routes = Route::apiResource($slug, $controller)
             ->parameter($slug, 'id')
