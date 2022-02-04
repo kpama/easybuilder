@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -62,9 +63,13 @@ class Parser
 
     }
 
-    protected function parseRelation($relation, &$columns)
+    protected function parseRelation($relation, &$columns, array $definition)
     {
+        $definition['in_filter'] = true;
+        $definition['in_read'] = true;
+        $definition['resource'] = $this->classToSlug(get_class($relation->getRelated())); 
         $result = [];
+
         switch (get_class($relation)) {
             case BelongsToMany::class:
                 $result = $this->parseBelongsToMany($relation, $columns);
@@ -78,11 +83,13 @@ class Parser
             case HasManyThrough::class:
                 $result = $this->parseHashManyThrough($relation, $columns);
                 break;
+            case HasOneThrough::class:
+                break;
             case MorphOne::class:
                 $result = $this->parseMorphOne($relation, $columns);
                 break;
             case MorphMany::class:
-                $result = $this->parseMorphMany($relation, $columns);
+                $result =$this->parseMorphMany($relation, $columns);
                 break;
             case MorphTo::class:
                 $result = $this->parseMorphTo($relation, $columns);
@@ -94,7 +101,8 @@ class Parser
                 $result = $this->pareseMorphToMany($relation, $columns);
                 break;
             default:
-                if ($relation instanceof BelongsToMany) {
+                throw new \Exception('relationship not handled: '. get_class($relation));
+                /* if ($relation instanceof BelongsToMany) {
                     $result = $this->parseBelongsToMany($relation, $columns);
                 } elseif ($relation instanceof HasMany) {
                     $result = $this->parseHasMany($relation, $columns);
@@ -113,13 +121,10 @@ class Parser
                 } elseif ($relation instanceof MorphToMany) {
                     $result = $this->pareseMorphToMany($relation, $columns);
                 }
-                break;
+                break; */
         }
-        $result['in_filter'] = true;
-        $result['in_read'] = true;
-        $result['resource'] = $this->classToSlug(get_class($relation->getRelated()));
 
-        return $result;
+        return array_merge($definition,$result);
     }
 
     protected function pareseMorphToMany($relation)
@@ -276,10 +281,41 @@ class Parser
             'through_class' => get_class($relation->getParent()),
             'class' => get_class($relation->getRelated()),
             'foreign_key' => $relation->getFirstKeyName(),
+            'local_key' => $relation->getLocalKeyName(),
             'columns' => []
         ];
 
         $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            $data['is_foreign_key'] = $relation->getForeignKeyName() == $column->getName();
+            $data['is_related_key'] = $relation->getForeignKeyName() == $column->getName();
+            if ($data['is_related_key']) {
+                $data['is_relation'] = true;
+            }
+            return ValidationBuilder::buildRules($data);
+        });
+
+        $result['columns'] = $columns;
+
+        return $result;
+    }
+
+    protected function parseOneThrough($relation)
+    {
+        $result = [
+            'type' => 'has_one_through',
+            'through_class' => get_class($relation->getParent()),
+            'class' => get_class($relation->getRelated()),
+            'foreign_key' => $relation->getFirstKeyName(),
+            'local_key' => $relation->getLocalKeyName(),
+            'columns' => []
+        ];
+
+        $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            $data['is_foreign_key'] = $relation->getForeignKeyName() == $column->getName();
+            $data['is_related_key'] = $relation->getForeignKeyName() == $column->getName();
+            if ($data['is_related_key']) {
+                $data['is_relation'] = true;
+            }
             return ValidationBuilder::buildRules($data);
         });
 
@@ -299,8 +335,15 @@ class Parser
         ];
 
         $columns = $this->getTableColumns($relation->getRelated()->getTable(), [], function ($data, $column) use ($relation) {
+            $data['is_foreign_key'] = $relation->getForeignKeyName() == $column->getName();
+            $data['is_related_key'] = $relation->getForeignKeyName() == $column->getName();
+            if ($data['is_related_key']) {
+                $data['is_relation'] = true;
+            }
             return ValidationBuilder::buildRules($data);
         });
+
+        
 
         $result['columns'] = $columns;
 
@@ -368,6 +411,10 @@ class Parser
                 // 'options' => $aColumn->getCustomSchemaOptions()
             ];
 
+            if(!$data['not_null'] && $data['type_name'] == 'string') {
+                $data['min_length'] = 1;
+            }
+
             // flags
             $data['in_read'] = true;
             $data['in_create'] = !$data['is_primary'];
@@ -401,7 +448,7 @@ class Parser
             'is_accessor' => false,
             'is_mutator' => false,
             'validation_rules' => [],
-            'is_foreign_key' => false
+            'is_foreign_key' => false,
         ];
 
         foreach ($data as $key => $value) {
@@ -516,15 +563,12 @@ class Parser
                         $result = (preg_match($this->relationRegex, $text)) ? $model->{$method}() : false;
 
                         if ($result && $result instanceof Relation) {
-                            $definition = $this->parseRelation($result, $columns);
-                            if (!empty($definition)) {
-                                $snakeName = Str::snake($method);
-                                $relationships[$snakeName] = [
-                                    'name' => $snakeName,
-                                    'label' => $snakeName,
-                                    // 'is_relation' => true,
-                                ] + $definition + ['method' => $method];
-                            }
+                            $snakeName = Str::snake($method);
+                           $relationships[$snakeName]  =  $this->parseRelation($result, $columns, [
+                                'name' => $snakeName,
+                                'label' => $snakeName,
+                                'method' => $snakeName
+                            ]);
                         }
                     }
                 }
