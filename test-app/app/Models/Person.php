@@ -4,14 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Person extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     public function setAgeAttribute(int $age)
     {
         $this->age = $age;
+    }
+
+    public function scopeByFirstName($query, string $name)
+    {
+
     }
 
     public function getAgeAttribute()

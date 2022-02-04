@@ -32,6 +32,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $with =[
+        'roles'
+    ];
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -44,5 +48,11 @@ class User extends Authenticatable
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'roles_users');
+    }
+
+    public function boys()
+    {
+        User::first()->delete();
+        return true;
     }
 }
