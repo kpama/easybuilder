@@ -10,6 +10,9 @@ class ValidationBuilder
 
     public static function buildRules(array $info): array
     {
+        // NOTE: The keys for the rules are not to be use for validation
+        //       The value for those keys are the real rules
+
         $rules = [
             'create' => [],
             'edit' => []
@@ -28,14 +31,23 @@ class ValidationBuilder
             switch ($info['type_name']) {
                 case Types::ARRAY:
                 case Types::SIMPLE_ARRAY:
-                    $rules['create'][] = 'array';
-                    $rules['edit'][] = 'array';
+                    $rules['create']['type'] = 'array';
+                    $rules['edit']['type'] = 'array';
                     break;
                 case Types::ASCII_STRING:
                 case Types::STRING:
                 case Types::TEXT:
-                    $rules['create'][] = 'string';
-                    $rules['edit'][] = 'string';
+                    $rules['create']['type'] = 'string';
+                    $rules['edit']['type'] = 'string';
+                    if($info['not_null']) {
+                        $rules['create']['min'] = 'min:1';
+                        $rules['edit']['min'] = 'min:1';
+                    }
+
+                    if($info['length']) {
+                        $rules['create']['max'] = 'max:'. $info['length'];
+                        $rules['edit']['max'] = 'max:'.$info['length'];
+                    }
                     break;
                 case Types::BIGINT:
                 case 'int':
@@ -45,49 +57,57 @@ class ValidationBuilder
                     break;
                 case Types::BINARY:
                 case Types::BLOB:
-                    $rules['create'][] = 'file';
-                    $rules['edit'][] = 'file';
+                    $rules['create']['type'] = 'file';
+                    $rules['edit']['type'] = 'file';
                     break;
                 case Types::BOOLEAN:
                 case 'bool':
                 case 'boolean':
-                    $rules['create'][] = 'boolean';
-                    $rules['edit'][] = 'boolean';
+                    $rules['create']['type'] = 'boolean';
+                    $rules['edit']['type'] = 'boolean';
                     break;
                 case Types::DATE_MUTABLE:
-                    $rules['create'][] = 'date:Y-m-d';
-                    $rules['edit'][] = 'date:Y-m-d';
+                    $rules['create']['type'] = 'string';
+                    $rules['edit']['type'] = 'string';
+                    $rules['create']['date'] = 'date:Y-m-d';
+                    $rules['edit']['date'] = 'date:Y-m-d';
                     break;
                 case Types::DATEINTERVAL:
                     // @todo
                     break;
                 case Types::DATETIME_MUTABLE:
-                    $rules['create'][] = 'date_format:Y-m-d H:i:s';
-                    $rules['edit'][] = 'date_format:Y-m-d H:i:s';
+                    $rules['create']['type'] = 'string';
+                    $rules['edit']['type'] = 'string';
+                    $rules['create']['date_format'] = 'date_format:Y-m-d H:i:s';
+                    $rules['edit']['date_format'] = 'date_format:Y-m-d H:i:s';
                     break;
                 case Types::DATETIMETZ_MUTABLE:
-                    $rules['create'][] = 'date_format:Y-m-d H:i:s';
-                    $rules['edit'][] = 'date_format:Y-m-d H:i:s';
+                    $rules['create']['type'] = 'string';
+                    $rules['edit']['type'] = 'string';
+                    $rules['create']['date_format'] = 'date_format:Y-m-d H:i:s';
+                    $rules['edit']['date_format'] = 'date_format:Y-m-d H:i:s';
                     break;
                 case Types::DECIMAL:
                 case Types::FLOAT:
-                    $rules['create'][] = 'regex:^(?:[1-9]\d+|\d)(?:\,\d\d)?$';
-                    $rules['edit'][] = 'regex:^(?:[1-9]\d+|\d)(?:\,\d\d)?$';
+                    $rules['create']['type'] = 'numeric';
+                    $rules['edit']['type'] = 'numeric';
+                    $rules['create']['regex'] = 'regex:^(?:[1-9]\d+|\d)(?:\,\d\d)?$';
+                    $rules['edit']['regex'] = 'regex:^(?:[1-9]\d+|\d)(?:\,\d\d)?$';
                     break;
                 case Types::GUID:
-                    $rules['create'][] = 'uuid';
-                    $rules['edit'][] = 'uuid';
+                    $rules['create']['type'] = 'uuid';
+                    $rules['edit']['type'] = 'uuid';
                     break;
                 case Types::JSON:
-                    $rules['create'][] = 'json';
-                    $rules['edit'][] = 'json';
+                    $rules['create']['type'] = 'json';
+                    $rules['edit']['type'] = 'json';
                     break;
                 case Types::OBJECT:
                     // @todo
                     break;
                 case Types::TIME_MUTABLE:
-                    $rules['create'][] = 'date_format:H:i:s';
-                    $rules['edit'][] = 'date_format:H:i:s';
+                    $rules['create']['date_format'] = 'date_format:H:i:s';
+                    $rules['edit']['date_format'] = 'date_format:H:i:s';
                     break;
             }
             $info['validation_rules'] = $rules;
@@ -106,8 +126,8 @@ class ValidationBuilder
 
     private static function intRules(array $rules, array $info): array
     {
-        $rules['create'][] = 'integer';
-        $rules['edit'][] = 'integer';
+        $rules['create']['type'] = 'integer';
+        $rules['edit']['type'] = 'integer';
 
         return $rules;
     }
@@ -115,13 +135,13 @@ class ValidationBuilder
     private static function appendRequiredRule(array $rules, array $info): array
     {
         if ($info['not_null']) {
-            $rules['create'][] = 'required';
+            $rules['create']['required'] = 'required';
 
             if (!$info['is_relation'] && !$info['is_foreign_key']) {
-                $rules['edit'][] = 'sometimes';
+                $rules['edit']['sometiems'] = 'sometimes';
             }
 
-            $rules['edit'][] = 'required';
+            $rules['edit']['required'] = 'required';
         }
 
         return $rules;
