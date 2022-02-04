@@ -4,9 +4,10 @@ namespace Kpama\Easybuilder\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
+use Kpama\Easybuilder\Contracts\ApiControllerInterface;
 use Kpama\Easybuilder\Lib\Manipulator;
 
-class ApiController extends BaseController
+class ApiController extends BaseController implements ApiControllerInterface
 {
   public function index(Request $request, string $resource)
   {
