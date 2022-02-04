@@ -72,56 +72,36 @@ class Parser
 
         switch (get_class($relation)) {
             case BelongsToMany::class:
-                $result = $this->parseBelongsToMany($relation, $columns);
+                $result = $this->parseBelongsToMany($relation);
                 break;
             case HasMany::class:
-                $result = $this->parseHasMany($relation, $columns);
+                $result = $this->parseHasMany($relation);
                 break;
             case HasOne::class:
-                $result = $this->parseHasOne($relation, $columns);
+                $result = $this->parseHasOne($relation);
                 break;
             case HasManyThrough::class:
-                $result = $this->parseHashManyThrough($relation, $columns);
+                $result = $this->parseHashManyThrough($relation);
                 break;
             case HasOneThrough::class:
                 break;
             case MorphOne::class:
-                $result = $this->parseMorphOne($relation, $columns);
+                $result = $this->parseMorphOne($relation);
                 break;
             case MorphMany::class:
-                $result =$this->parseMorphMany($relation, $columns);
+                $result =$this->parseMorphMany($relation);
                 break;
             case MorphTo::class:
                 $result = $this->parseMorphTo($relation, $columns);
                 break;
             case BelongsTo::class:
-                $result = $this->parseBelongsTo($relation, $columns);
+                $result = $this->parseBelongsTo($relation);
                 break;
             case MorphToMany::class:
-                $result = $this->pareseMorphToMany($relation, $columns);
+                $result = $this->pareseMorphToMany($relation);
                 break;
             default:
                 throw new \Exception('relationship not handled: '. get_class($relation));
-                /* if ($relation instanceof BelongsToMany) {
-                    $result = $this->parseBelongsToMany($relation, $columns);
-                } elseif ($relation instanceof HasMany) {
-                    $result = $this->parseHasMany($relation, $columns);
-                } elseif ($relation instanceof HasOne) {
-                    $result = $this->parseHasOne($relation, $columns);
-                } elseif ($relation instanceof HasManyThrough) {
-                    $result = $this->parseHashManyThrough($relation, $columns);
-                } elseif ($relation instanceof MorphOne) {
-                    $result = $this->parseMorphOne($relation, $columns);
-                } elseif ($relation instanceof MorphMany) {
-                    $result = $this->parseMorphMany($relation, $columns);
-                } elseif ($relation instanceof MorphTo) {
-                    $result = $this->parseMorphTo($relation, $columns);
-                } elseif ($relation instanceof BelongsTo) {
-                    $result = $this->parseBelongsTo($relation, $columns);
-                } elseif ($relation instanceof MorphToMany) {
-                    $result = $this->pareseMorphToMany($relation, $columns);
-                }
-                break; */
         }
 
         return array_merge($definition,$result);
