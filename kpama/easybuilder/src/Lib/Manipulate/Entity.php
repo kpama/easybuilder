@@ -136,12 +136,12 @@ class Entity
             }
 
             if (!empty($validationRules['create'])) {
-                if ($this->shouldAddToValidator($name, $definition, $data, 'create')) {
+                if ($this->shouldAddToValidator($name, $definition, $data, true)) {
                     $createRules[$name] = $validationRules['create'];
                 }
             }
             if (!empty($validationRules['edit'])) {
-                if ($this->shouldAddToValidator($name, $definition, $data, 'edit')) {
+                if ($this->shouldAddToValidator($name, $definition, $data, false)) {
                     $editRules[$name] = $validationRules['edit'];
                 }
             }
@@ -155,12 +155,16 @@ class Entity
         ];
     }
 
-    protected function shouldAddToValidator(string $name, array $definition,  array $data, string $mode): bool
+    protected function shouldAddToValidator(string $name, array $definition,  array $data, bool $creating = true): bool
     {
-        if (!$definition['not_null'] && !isset($data[$name])) {
-            return false;
-        }
+        /* if($creating) {
 
+        } else {
+        } */
+
+            if (!$definition['not_null'] && !isset($data[$name])) {
+                return false;
+            }
         return true;
     }
 
