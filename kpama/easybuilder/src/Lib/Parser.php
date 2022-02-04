@@ -415,7 +415,7 @@ class Parser
     {
         $default =  [
             'name' => '',
-            'not_null' => '',
+            'not_null' => false,
             'default' => '',
             'type_name' => '',
             'length' => '',
