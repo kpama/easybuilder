@@ -500,14 +500,13 @@ class Parser
 
                         continue;
                     } else if (preg_match($setter, $method)) {
-                        $name = Str::snake(str_replace(['set', 'Attribute'], '', $method));
+                        $field= Str::snake(str_replace(['set', 'Attribute'], '', $method));
 
-                        $field = $name;
                         $param = $params[0];
-
+ 
                         $columns[$field] = $this->getColumnMeta([
-                            'name' => $name,
-                            'is_mutator' => true,
+                            'name' => $field,
+                            'is_mutator' =>  true,
                             'type_name' => ($param->getType()) ? $param->getType()->getName() : 'string',
                             'not_null' => ($param->getType()) ? $param->getType()->allowsNull() : true,
                             'in_create' => true,
