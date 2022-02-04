@@ -76,11 +76,11 @@ class Entity
 
     public function queryWithDefinition(array $definition, string $resourceClass, string $id = null)
     {
-        $allowToFileBy = [];
+        $allowToFilterBy = [];
 
         foreach ($definition['columns'] as $column) {
             if ($column['in_filter']) {
-                $allowToFileBy[] = $column['name'];
+                $allowToFiterBy[] = $column['name'];
             }
         }
 
