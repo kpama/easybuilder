@@ -481,7 +481,8 @@ class Parser
                         $columns[$field] = $this->getColumnMeta([
                             'name' => $name,
                             'is_accessor' => true,
-                            'in_filter' => false
+                            'in_filter' => false,
+                            'label' => $name,
                         ]);
                         $columns[$field] = ValidationBuilder::buildRules($columns[$field]);
                         continue;
@@ -516,7 +517,8 @@ class Parser
                             'not_null' => ($param->getType()) ? $param->getType()->allowsNull() : true,
                             'in_create' => true,
                             'in_update' => true,
-                            'in_filter' => false
+                            'in_filter' => false,
+                            'label' => $field
                         ]);
                         $columns[$field] = ValidationBuilder::buildRules($columns[$field]);
                         continue;
