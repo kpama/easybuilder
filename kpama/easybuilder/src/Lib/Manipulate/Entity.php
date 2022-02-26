@@ -17,11 +17,10 @@ class Entity
 {
     const MODE_EDIT  = 'edit',
         MODE_CREATE  = 'create';
-
+    
     public function createOrUpdate(string $resourceClass, array $data, ?string $mode = null, ?string $id = null)
     {
-        $parser = new Parser();
-        $definition = $parser->parse($resourceClass);;
+        $definition = Parser::do($resourceClass);;
         return $this->createOrUpdateWithDefinition($definition, $resourceClass, $data, $mode, $id);
     }
 
