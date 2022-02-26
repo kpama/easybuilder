@@ -44,6 +44,11 @@ class Parser
         $this->relationRegex = '/^return\s+\$this->(' . implode('|', self::$relations) . ')/m';
     }
 
+    public static function do(object| string $modelClass, bool $appendRelationships = true): array
+    {
+        return (new Parser())->parse($modelClass, $appendRelationships);
+    }
+
     public function parse($modelClass, bool $appendRelationships = true)
     {
         $model =  (is_object($modelClass)) ? $modelClass : $modelClass::make();
