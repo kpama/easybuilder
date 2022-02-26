@@ -7,11 +7,16 @@ use Kpama\Easybuilder\Lib\Manipulate\Entity;
 
 class Manipulator
 {
-    private Entity $entity;
+    protected Entity $entity;
 
-    public function __construct()
+    public function __construct(Entity $entity)
     {
-        $this->entity = new Entity();
+        $this->entity = $entity;
+    }
+
+    public static function make(): Manipulator
+    {
+        return app()->make(Manipulator::class);
     }
 
     public function handleCreateOrUpdateRequest(Request $request, string $resource, string $id = null)
