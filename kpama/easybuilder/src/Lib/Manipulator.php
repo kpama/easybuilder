@@ -31,13 +31,12 @@ class Manipulator
 
     public function handleGetRequest(Request $request, string $resource, string $id = null)
     {
-        $class = $this->resourceToClass($resource);
-        return $this->entity->query($class, $id);
+        return $this->handleGet($resource, $id, $request->query());
     }
 
-    public function handleGet()
+    public function handleGet($resource, mixed $id = null, array $params = [])
     {
-        // @todo Implement this method
+        return $this->entity->query($this->resourceToClass($resource), $id, $params);
     }
 
     public function getEntity(): Entity
