@@ -66,14 +66,13 @@ class Entity
         return $idField;
     }
 
-    public function query(string $resourceClass, string $id = null)
+    public function query(string $resourceClass, string $id = null, array $params = [])
     {
-        $parser = new Parser();
-        $definition = $parser->parse($resourceClass);
-        return $this->queryWithDefinition($definition, $resourceClass, $id);
+        $definition = Parser::do($resourceClass);
+        return $this->queryWithDefinition($definition, $id, $params);
     }
 
-    public function queryWithDefinition(array $definition, string $resourceClass, string $id = null)
+    public function queryWithDefinition(array $definition, string $id = null, array $params = [])
     {
         $allowToFilterBy = [];
 
@@ -83,7 +82,7 @@ class Entity
             }
         }
 
-        $query = (new Query($definition))->build($resourceClass, $this);
+        $query = (new Query())->build($definition, $params);
 
         if ($id) {
             return $query->findOrFail($id);
