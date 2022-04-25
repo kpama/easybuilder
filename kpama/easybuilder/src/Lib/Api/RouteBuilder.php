@@ -3,10 +3,8 @@
 namespace Kpama\Easybuilder\Lib\Api;
 
 use Closure;
-use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
-use Kpama\Easybuilder\Controllers\Api\V1\ApiController;
 use Kpama\Easybuilder\Lib\Parser;
 
 class RouteBuilder
