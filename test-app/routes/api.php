@@ -45,5 +45,5 @@ Route::get('resource/{resource}/{id}', function(Request $request, $resource, $id
     return $manipulator->handleGetRequest($request, $resource, $id);
 });
 
-RouteBuilder::generate(Person::class, false);
-RouteBuilder::generate(User::class, false);
+RouteBuilder::generate(Person::class);
+RouteBuilder::generate(User::class);
