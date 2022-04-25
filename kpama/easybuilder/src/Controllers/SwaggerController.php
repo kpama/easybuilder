@@ -40,7 +40,7 @@ class SwaggerController extends BaseController
         $definition = (new Parser())->parse($this->resourceToClass($resource));
         $schema = (new JsonSchema())->transform($definition);
 
-        collect(Route::getRoutes())->each(function ($route) use ($resource, $definition, $schema,  &$routes, &$builtRoutes) {
+        collect(Route::getRoutes())->each(function ($route) use ($resource, $schema,  &$routes, &$builtRoutes) {
             if (isset($route->defaults['resource']) && $route->defaults['resource'] == $resource) {
                 $swaggerDefinition = [
                     'description' => implode(', ', $route->methods()) . " request to {$route->getActionName()} route handler",
@@ -53,6 +53,10 @@ class SwaggerController extends BaseController
                 $uri = ($uri[0] == '/') ? $uri : "/{$uri}";
 
                 foreach ($route->methods() as $method) {
+                    if ($method == 'HEAD') {
+                        continue;
+                    }
+
                     if (!isset($builtRoutes[$uri])) {
                         $builtRoutes[$uri] = [];
                     }
@@ -73,15 +77,15 @@ class SwaggerController extends BaseController
             'tags' => [
                 [
                     'name' => 'GET',
-                    'description' => 'Make a get request'
+                    'description' => "Get one or more {$className}"
                 ],
-                [
+                /*[
                     'name' => 'HEAD',
                     'description' => 'Make a get request'
-                ],
+                ],*/
                 [
                     'name' => 'POST',
-                    'description' => 'Make a post request'
+                    'description' => "Make a post request"
                 ],
                 [
                     'name' => 'PUT',
