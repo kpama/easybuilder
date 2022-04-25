@@ -164,7 +164,7 @@ class SwaggerController extends BaseController
         'in' => 'query',
         'name' => 'sort',
         'required' => false,
-        'description' => 'Sort result by one or more fields [assending => **col-name** , descending => **-col-name**]',
+        'description' => 'Sort result by one or more fields [ascending => **col-name** , descending => **-col-name**]',
         'schema' => [
           'type' => 'string',
           'example' => '-id'
@@ -180,7 +180,7 @@ class SwaggerController extends BaseController
           'type' => 'integer'
         ]
       ],
-      // paginage limit
+      // paginate limit
       [
         'in' => 'query',
         'name' => 'limit',
