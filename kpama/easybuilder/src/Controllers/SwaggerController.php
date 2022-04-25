@@ -18,11 +18,12 @@ class SwaggerController extends BaseController
   public function configAction()
   {
     $links = [];
-    collect(Route::getRoutes())->each(function ($route) use (&$links) {
+		$prefix = config('kpamaeasybuilder.swagger_uri_prefix');
+    collect(Route::getRoutes())->each(function ($route) use (&$links, $prefix) {
       if (isset($route->defaults['_easy_generated']) && isset($route->defaults['resource'])) {
         $resource = $route->defaults['resource'];
         $links[$resource] = [
-          'url' => '/kpamaeasybuilder/swagger-api/' . $resource,
+          'url' => "/{$prefix}/swagger-api/{$resource}",
           'name' => str_replace('-', ' ', $resource)
         ];
       }
