@@ -70,9 +70,7 @@ class SwaggerController extends BaseController
         'version' => '1.1',
         'description' => env('APP_NAME') . ' auto generated swagger docs'
       ],
-      'servers' => [
-        // ['url' => '/']
-      ],
+      'servers' => [],
       'tags' => [
         [
           'name' => 'GET',
@@ -82,8 +80,6 @@ class SwaggerController extends BaseController
           'name' => 'HEAD',
           'description' => 'Make a get request'
         ],
-
-
         [
           'name' => 'POST',
           'description' => 'Make a post request'
