@@ -77,7 +77,7 @@ class SwaggerController extends BaseController
             'tags' => [
                 [
                     'name' => 'GET',
-                    'description' => "Get one or more {$className}"
+                    'description' => "Make a get request"
                 ],
                 /*[
                     'name' => 'HEAD',
