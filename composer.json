@@ -5,6 +5,7 @@
     "authors": [],
     "minimum-stability": "dev",
     "require": {
+	 "doctrine/dbal": "^3.0"
     },
     "require-dev": {
     },
