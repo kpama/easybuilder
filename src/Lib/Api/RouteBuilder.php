@@ -18,8 +18,7 @@ class RouteBuilder
             return;
         }
 
-        $parser = new Parser();
-        $data = $parser->parse($model);
+        $data = Parser::do($model);
 
         $slug = $slug ?: Str::plural(Str::slug($data['class']));
         $controller = $controller ?: config('kpamaeasybuilder.api_controller');
