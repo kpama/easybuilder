@@ -21,5 +21,5 @@ return [
      |  Default controller to use for API routes
      |----------------------------------------------------------------
     */
-    'api_controller' => ApiController::class
+    'api_controller' => '\\'.ApiController::class
 ];
