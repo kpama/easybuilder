@@ -11,7 +11,7 @@ Route::group(['middleware' => ['web']], function () {
 
 	// swagger routes
 	if (config('kpamaeasybuilder.register_sawgger_route')) {
-		$prefix = config('kpamaeasybuilder.swagger_uri_prefix');
+		$prefix = config('kpamaeasybuilder.swagger_uri_prefix', 'kpamaeasybuilder');
 		Route::get("{$prefix}/swagger", [SwaggerController::class, 'swaggerAction']);
 		Route::get("{$prefix}/swagger-api/{resource}", [SwaggerController::class, 'swaggerApiAction']);
 		Route::get("{$prefix}/swagger-config", [SwaggerController::class, 'configAction']);
