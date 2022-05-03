@@ -26,7 +26,7 @@ class JsonSchema implements TransformerInterface
     return $schema;
   }
 
-  protected function buildObject(array $persedData, array $schema, array $parentRecord = [] ): array
+  protected function buildObject(array $persedData, array $schema, array $parentRecord = []): array
   {
     $schema['type'] = 'object';
     $schema['properties'] = [];
@@ -34,9 +34,9 @@ class JsonSchema implements TransformerInterface
     foreach ($persedData['columns'] as $id => $aColumn) {
       $schema['properties'][$id] = $this->buildColumn($aColumn);
 
-        if($aColumn['not_null'] && !$aColumn['is_primary'] && !$aColumn['is_foreign_key']) {
-          $schema['required'][] = $id;
-        }
+      if ($aColumn['not_null'] && !$aColumn['is_primary'] && !$aColumn['is_foreign_key']) {
+        $schema['required'][] = $id;
+      }
     }
 
     return $schema;
@@ -52,11 +52,10 @@ class JsonSchema implements TransformerInterface
 
     // type
     if (stristr($typeName, 'int')) {
-        $type = 'integer';
-        $build['type']  = $type;
-    } else if($typeName == 'string') {
+      $build['type']  = 'integer';
+    } else if ($typeName == 'string' || $typeName == 'text') {
       $build = $this->buildStringType($column);
-    } else if(in_array($typeName, ['date', 'datetime'])) {
+    } else if (in_array($typeName, ['date', 'datetime'])) {
       $build = $this->buildDateType($column);
     } else if ($typeName != 'string') {
       switch ($typeName) {
@@ -99,8 +98,8 @@ class JsonSchema implements TransformerInterface
       'type' => 'string'
     ];
 
-    if($column['not_null']) {
-      $build['minLength'] = (isset($column['min_length'])) ?$column['min_length']: 1;
+    if ($column['not_null']) {
+      $build['minLength'] = (isset($column['min_length'])) ? $column['min_length'] : 1;
       $build['maxLength'] = $column['length'];
     }
 
@@ -114,12 +113,12 @@ class JsonSchema implements TransformerInterface
       'type' => 'string'
     ];
 
-    switch($column['type_name']) {
+    switch ($column['type_name']) {
       case 'datetime':
-        $build['format'] = 'date-time'; 
+        $build['format'] = 'date-time';
         break;
       case 'date':
-        $build['format'] = 'date'; 
+        $build['format'] = 'date';
         break;
     }
 
