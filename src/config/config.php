@@ -15,7 +15,7 @@ return [
      |  Prefix to use for the swagger routes
      |----------------------------------------------------------------
     */
-    'swagger_uri_prefix' => env('SWAGGER_URI_PREFIX', 'kpamaeasybuilder'),
+    'swagger_uri_prefix' => env('SWAGGER_URI_PREFIX', 'kb'),
 
     /*----------------------------------------------------------------
      |  Default controller to use for API routes
