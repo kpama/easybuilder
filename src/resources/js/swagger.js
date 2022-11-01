@@ -3,7 +3,7 @@ const SwaggerUIStandalonePreset = require('swagger-ui/dist/swagger-ui-standalone
 
 SwaggerUI({
   dom_id: '#doc',
-  configUrl: '/kpamaeasybuilder/swagger-config',
+  configUrl: `${window.location.pathname}-config`,
   plugins: [
     SwaggerUI.plugins.Topbar,
     SwaggerUI.plugins.DownloadUrl
